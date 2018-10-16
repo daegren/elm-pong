@@ -90,9 +90,40 @@ delta model =
 -- VIEW --
 
 
+pongGreen : Color.Color
+pongGreen =
+    Color.rgb255 60 100 60
+
+
+backgroundView =
+    let
+        ( gameWidth, gameHeight ) =
+            getDimensions
+    in
+    Svg.rect
+        [ Svg.Attributes.fill <| Color.toCssString pongGreen
+        , Svg.Attributes.width (String.fromInt gameWidth)
+        , Svg.Attributes.height (String.fromInt gameHeight)
+        ]
+        []
+
+
+display : Model -> Svg.Svg msg
+display model =
+    let
+        ( gameWidth, gameHeight ) =
+            getDimensions
+    in
+    Svg.svg
+        [ Svg.Attributes.width (String.fromInt gameWidth)
+        , Svg.Attributes.height (String.fromInt gameHeight)
+        ]
+        [ backgroundView ]
+
+
 body : Model -> List (Html.Html msg)
 body model =
-    []
+    [ display model ]
 
 
 view : Model -> Browser.Document msg

@@ -25,8 +25,17 @@ type alias Ball =
     Object {}
 
 
+type alias Game =
+    { ball : Ball }
+
+
+defaultGame : Game
+defaultGame =
+    { ball = { x = 0, y = 0, vx = 200, vy = 200 } }
+
+
 type alias Model =
-    {}
+    { gameState : Game }
 
 
 getDimensions : ( Int, Int )
@@ -45,7 +54,7 @@ getHalfWidths =
 
 initialModel : Model
 initialModel =
-    {}
+    { gameState = defaultGame }
 
 
 
@@ -67,8 +76,38 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
-    -- FIXME: acutally write the logic for update
-    ( model, Cmd.none )
+    case msg of
+        Tick delta ->
+            ( { model
+                | gameState = stepGame (delta / 1000) model.gameState
+              }
+            , Cmd.none
+            )
+
+
+stepGame : Float -> Game -> Game
+stepGame delta game =
+    let
+        { ball } =
+            game
+
+        ball_ =
+            stepBall delta ball
+    in
+    { game | ball = ball_ }
+
+
+stepBall : Float -> Ball -> Ball
+stepBall delta ({ x, y, vx, vy } as ball) =
+    stepObj delta ball
+
+
+stepObj : Float -> Object a -> Object a
+stepObj delta ({ x, y, vx, vy } as obj) =
+    { obj
+        | x = x + vx * delta
+        , y = y + vy * delta
+    }
 
 
 
@@ -78,11 +117,11 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ delta model ]
+        [ onAnimationFrame model ]
 
 
-delta : Model -> Sub Msg
-delta model =
+onAnimationFrame : Model -> Sub Msg
+onAnimationFrame model =
     Browser.Events.onAnimationFrameDelta Tick
 
 
@@ -118,7 +157,20 @@ display model =
         [ Svg.Attributes.width (String.fromInt gameWidth)
         , Svg.Attributes.height (String.fromInt gameHeight)
         ]
-        [ backgroundView ]
+        [ backgroundView
+        , displayBall model.gameState.ball
+        ]
+
+
+displayBall : Ball -> Svg.Svg msg
+displayBall { x, y } =
+    Svg.circle
+        [ Svg.Attributes.cx (String.fromFloat x)
+        , Svg.Attributes.cy (String.fromFloat y)
+        , Svg.Attributes.r "15"
+        , Svg.Attributes.fill <| Color.toCssString Color.white
+        ]
+        []
 
 
 body : Model -> List (Html.Html msg)

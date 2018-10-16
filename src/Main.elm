@@ -97,9 +97,29 @@ stepGame delta game =
     { game | ball = ball_ }
 
 
+stepV : Float -> Bool -> Bool -> Float
+stepV v lowerCollision upperCollision =
+    if lowerCollision then
+        abs v
+
+    else if upperCollision then
+        -(abs v)
+
+    else
+        v
+
+
 stepBall : Float -> Ball -> Ball
 stepBall delta ({ x, y, vx, vy } as ball) =
-    stepObj delta ball
+    let
+        ( width, height ) =
+            getDimensions
+    in
+    stepObj delta
+        { ball
+            | vx = stepV vx (x < 7) (x > toFloat width - 7)
+            , vy = stepV vy (y < 7) (y > toFloat height - 7)
+        }
 
 
 stepObj : Float -> Object a -> Object a

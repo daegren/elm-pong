@@ -15,15 +15,26 @@ type alias Ball =
     Object {}
 
 
+type alias Player =
+    Object { score : Int }
+
+
+player : Float -> Player
+player x =
+    { x = x, y = 0, vx = 0, vy = 0, score = 0 }
+
+
 type alias Model =
     { ball : Ball
+    , player1 : Player
     , dimensions : ( Float, Float )
     }
 
 
 initialModel : ( Float, Float ) -> Model
-initialModel dimensions =
+initialModel (( width, height ) as dimensions) =
     { ball = { x = 0, y = 0, vx = 200, vy = 200 }
+    , player1 = player 20
     , dimensions = dimensions
     }
 
@@ -96,6 +107,7 @@ view ({ dimensions } as model) =
         ]
         [ backgroundView model
         , displayBall model.ball
+        , displayPlayer model.player1
         ]
 
 
@@ -126,3 +138,19 @@ displayBall { x, y } =
         , fill <| Color.toCssString Color.white
         ]
         []
+
+
+displayPlayer : Player -> Svg msg
+displayPlayer playerObj =
+    rect
+        [ fill <| Color.toCssString Color.white
+        , width "10"
+        , height "40"
+        , translate playerObj
+        ]
+        []
+
+
+translate : { r | x : Float, y : Float } -> Svg.Attribute msg
+translate { x, y } =
+    transform ("translate(" ++ String.fromFloat x ++ " " ++ String.fromFloat y ++ ")")

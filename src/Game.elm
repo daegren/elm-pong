@@ -67,9 +67,15 @@ update msg input model =
 stepGame : Float -> Input.Model -> Model -> Model
 stepGame delta input ({ state, ball, player1, player2 } as model) =
     let
+        ( score1, score2 ) =
+            calculateScores model
+
         state_ =
             if input.space then
                 Play
+
+            else if score1 /= score2 then
+                Pause
 
             else
                 state
@@ -82,10 +88,10 @@ stepGame delta input ({ state, ball, player1, player2 } as model) =
                 stepBall delta model ball
 
         player1_ =
-            stepPlayer delta model input.paddle1 player1
+            stepPlayer delta model input.paddle1 score1 player1
 
         player2_ =
-            stepPlayer delta model input.paddle2 player2
+            stepPlayer delta model input.paddle2 score2 player2
     in
     { model
         | state = state_
@@ -95,8 +101,31 @@ stepGame delta input ({ state, ball, player1, player2 } as model) =
     }
 
 
-stepPlayer : Float -> Model -> Int -> Player -> Player
-stepPlayer delta { dimensions } dir playerObj =
+calculateScores : Model -> ( Int, Int )
+calculateScores { dimensions, ball } =
+    let
+        ( width, height ) =
+            dimensions
+
+        score1 =
+            if ball.x > width then
+                1
+
+            else
+                0
+
+        score2 =
+            if ball.x < 0 then
+                1
+
+            else
+                0
+    in
+    ( score1, score2 )
+
+
+stepPlayer : Float -> Model -> Int -> Int -> Player -> Player
+stepPlayer delta { dimensions } dir points playerObj =
     let
         ( width, height ) =
             dimensions
@@ -106,8 +135,11 @@ stepPlayer delta { dimensions } dir playerObj =
 
         y_ =
             clamp 0 (height - 40) player_.y
+
+        score_ =
+            playerObj.score + points
     in
-    { player_ | y = y_ }
+    { player_ | y = y_, score = score_ }
 
 
 stepBall : Float -> Model -> Ball -> Ball
@@ -143,7 +175,7 @@ near n c m =
 
 within : Ball -> Player -> Bool
 within ball playerObj =
-    near playerObj.x 16 ball.x
+    near playerObj.x 10 ball.x
         && near playerObj.y 40 ball.y
 
 

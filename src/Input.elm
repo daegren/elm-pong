@@ -27,6 +27,8 @@ initialModel =
 type Key
     = ArrowUp
     | ArrowDown
+    | W
+    | S
 
 
 type Msg
@@ -48,9 +50,15 @@ handleKeyDown : Key -> Model -> Model
 handleKeyDown key model =
     case key of
         ArrowUp ->
-            { model | paddle1 = -1 }
+            { model | paddle2 = -1 }
 
         ArrowDown ->
+            { model | paddle2 = 1 }
+
+        W ->
+            { model | paddle1 = -1 }
+
+        S ->
             { model | paddle1 = 1 }
 
 
@@ -58,9 +66,15 @@ handleKeyUp : Key -> Model -> Model
 handleKeyUp key model =
     case key of
         ArrowUp ->
-            { model | paddle1 = 0 }
+            { model | paddle2 = 0 }
 
         ArrowDown ->
+            { model | paddle2 = 0 }
+
+        W ->
+            { model | paddle1 = 0 }
+
+        S ->
             { model | paddle1 = 0 }
 
 
@@ -79,6 +93,12 @@ keyDecoder =
 
                     "ArrowDown" ->
                         Decode.succeed ArrowDown
+
+                    "w" ->
+                        Decode.succeed W
+
+                    "s" ->
+                        Decode.succeed S
 
                     _ ->
                         let

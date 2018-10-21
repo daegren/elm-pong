@@ -28,6 +28,7 @@ player x =
 type alias Model =
     { ball : Ball
     , player1 : Player
+    , player2 : Player
     , dimensions : ( Float, Float )
     }
 
@@ -36,6 +37,7 @@ initialModel : ( Float, Float ) -> Model
 initialModel (( width, height ) as dimensions) =
     { ball = { x = width / 2, y = height / 2, vx = 200, vy = 200 }
     , player1 = player 20
+    , player2 = player (width - 20)
     , dimensions = dimensions
     }
 
@@ -56,17 +58,21 @@ update msg input model =
 
 
 stepGame : Float -> Input.Model -> Model -> Model
-stepGame delta input ({ ball, player1 } as model) =
+stepGame delta input ({ ball, player1, player2 } as model) =
     let
         ball_ =
-            stepBall delta model player1 ball
+            stepBall delta model ball
 
         player1_ =
             stepPlayer delta model input.paddle1 player1
+
+        player2_ =
+            stepPlayer delta model input.paddle2 player2
     in
     { model
         | ball = ball_
         , player1 = player1_
+        , player2 = player2_
     }
 
 
@@ -85,17 +91,21 @@ stepPlayer delta { dimensions } dir playerObj =
     { player_ | y = y_ }
 
 
-stepBall : Float -> Model -> Player -> Ball -> Ball
-stepBall delta { dimensions } player1 ({ x, y, vx, vy } as ball) =
+stepBall : Float -> Model -> Ball -> Ball
+stepBall delta { dimensions, player1, player2 } ({ x, y, vx, vy } as ball) =
     let
         ( width, height ) =
             dimensions
     in
-    Object.step delta
-        { ball
-            | vx = Object.stepV vx (x < 7 || within ball player1) (x > width - 7)
-            , vy = Object.stepV vy (y < 7) (y > height - 7)
-        }
+    if x < 0 || not (near 0 width x) then
+        { ball | x = width / 2, y = height / 2 }
+
+    else
+        Object.step delta
+            { ball
+                | vx = Object.stepV vx (within ball player1) (within ball player2)
+                , vy = Object.stepV vy (y < 7) (y > height - 7)
+            }
 
 
 
@@ -114,7 +124,7 @@ near n c m =
 
 within : Ball -> Player -> Bool
 within ball playerObj =
-    near playerObj.x 10 ball.x
+    near playerObj.x 16 ball.x
         && near playerObj.y 40 ball.y
 
 
@@ -150,6 +160,7 @@ view ({ dimensions } as model) =
         [ backgroundView model
         , displayBall model.ball
         , displayPlayer model.player1
+        , displayPlayer model.player2
         ]
 
 

@@ -274,14 +274,14 @@ displayHelp model =
         text_
             [ fontFamily "monospace"
             , fill <| Color.toCssString textGreen
-            , translate { x = width / 2 - 175, y = 40 }
+            , translate { x = width / 2 - 125, y = 40 }
             ]
             [ text helpMessage ]
 
 
 helpMessage : String
 helpMessage =
-    "SPACE to start ws and &uarr;&darr; to move"
+    "SPACE to start ws and ⬆⬇ to move"
 
 
 displayScores : Model -> Svg msg

@@ -34,7 +34,7 @@ type alias Model =
 
 initialModel : ( Float, Float ) -> Model
 initialModel (( width, height ) as dimensions) =
-    { ball = { x = 0, y = 0, vx = 200, vy = 200 }
+    { ball = { x = width / 2, y = height / 2, vx = 200, vy = 200 }
     , player1 = player 20
     , dimensions = dimensions
     }
@@ -59,7 +59,7 @@ stepGame : Float -> Input.Model -> Model -> Model
 stepGame delta input ({ ball, player1 } as model) =
     let
         ball_ =
-            stepBall delta model ball
+            stepBall delta model player1 ball
 
         player1_ =
             stepPlayer delta model input.paddle1 player1
@@ -85,17 +85,37 @@ stepPlayer delta { dimensions } dir playerObj =
     { player_ | y = y_ }
 
 
-stepBall : Float -> Model -> Ball -> Ball
-stepBall delta { dimensions } ({ x, y, vx, vy } as ball) =
+stepBall : Float -> Model -> Player -> Ball -> Ball
+stepBall delta { dimensions } player1 ({ x, y, vx, vy } as ball) =
     let
         ( width, height ) =
             dimensions
     in
     Object.step delta
         { ball
-            | vx = Object.stepV vx (x < 7) (x > width - 7)
+            | vx = Object.stepV vx (x < 7 || within ball player1) (x > width - 7)
             , vy = Object.stepV vy (y < 7) (y > height - 7)
         }
+
+
+
+-- COLLISION HELPERS --
+
+
+{-| Are n and m near each other?
+
+Specifically are they within c of each other
+
+-}
+near : Float -> Float -> Float -> Bool
+near n c m =
+    m >= n - c && m <= n + c
+
+
+within : Ball -> Player -> Bool
+within ball playerObj =
+    near playerObj.x 10 ball.x
+        && near playerObj.y 40 ball.y
 
 
 
@@ -156,7 +176,7 @@ displayBall { x, y } =
     circle
         [ cx (String.fromInt (floor x))
         , cy (String.fromInt (floor y))
-        , r "15"
+        , r "7"
         , fill <| Color.toCssString Color.white
         ]
         []

@@ -180,6 +180,7 @@ view ({ dimensions } as model) =
         , displayPlayer model.player1
         , displayPlayer model.player2
         , displayHelp model
+        , displayScores model
         ]
 
 
@@ -228,17 +229,6 @@ displayPlayer playerObj =
         []
 
 
-translate : { r | x : Float, y : Float } -> Svg.Attribute msg
-translate { x, y } =
-    transform
-        ("translate("
-            ++ String.fromInt (floor x)
-            ++ " "
-            ++ String.fromInt (floor y)
-            ++ ")"
-        )
-
-
 displayHelp : Model -> Svg msg
 displayHelp model =
     if model.state == Play then
@@ -251,7 +241,7 @@ displayHelp model =
         in
         text_
             [ fontFamily "monospace"
-            , color <| Color.toCssString textGreen
+            , fill <| Color.toCssString textGreen
             , translate { x = width / 2 - 175, y = 40 }
             ]
             [ text helpMessage ]
@@ -260,3 +250,35 @@ displayHelp model =
 helpMessage : String
 helpMessage =
     "SPACE to start ws and &uarr;&darr; to move"
+
+
+displayScores : Model -> Svg msg
+displayScores { player1, player2, dimensions } =
+    let
+        ( width, height ) =
+            dimensions
+    in
+    text_
+        [ fontFamily "monospace"
+        , fill <| Color.toCssString Color.white
+        , fontSize "50"
+        , translate { x = width / 2 - 50, y = height - 40 }
+        ]
+        [ text <|
+            (String.fromInt player1.score ++ " " ++ String.fromInt player2.score)
+        ]
+
+
+
+-- VIEW HELPERS --
+
+
+translate : { r | x : Float, y : Float } -> Svg.Attribute msg
+translate { x, y } =
+    transform
+        ("translate("
+            ++ String.fromInt (floor x)
+            ++ " "
+            ++ String.fromInt (floor y)
+            ++ ")"
+        )

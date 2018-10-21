@@ -2,6 +2,7 @@ module Game exposing (Model, Msg, initialModel, subscriptions, update, view)
 
 import Browser.Events
 import Color
+import Input
 import Object exposing (Object)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
@@ -47,20 +48,41 @@ type Msg
     = Tick Float
 
 
-update : Msg -> Model -> Model
-update msg model =
+update : Msg -> Input.Model -> Model -> Model
+update msg input model =
     case msg of
         Tick delta ->
-            stepGame (delta / 1000) model
+            stepGame (delta / 1000) input model
 
 
-stepGame : Float -> Model -> Model
-stepGame delta ({ ball } as model) =
+stepGame : Float -> Input.Model -> Model -> Model
+stepGame delta input ({ ball, player1 } as model) =
     let
         ball_ =
             stepBall delta model ball
+
+        player1_ =
+            stepPlayer delta model input.paddle1 player1
     in
-    { model | ball = ball_ }
+    { model
+        | ball = ball_
+        , player1 = player1_
+    }
+
+
+stepPlayer : Float -> Model -> Int -> Player -> Player
+stepPlayer delta { dimensions } dir playerObj =
+    let
+        ( width, height ) =
+            dimensions
+
+        player_ =
+            Object.step delta { playerObj | vy = toFloat dir * 200 }
+
+        y_ =
+            clamp 0 (height - 40) player_.y
+    in
+    { player_ | y = y_ }
 
 
 stepBall : Float -> Model -> Ball -> Ball
@@ -153,4 +175,10 @@ displayPlayer playerObj =
 
 translate : { r | x : Float, y : Float } -> Svg.Attribute msg
 translate { x, y } =
-    transform ("translate(" ++ String.fromFloat x ++ " " ++ String.fromFloat y ++ ")")
+    transform
+        ("translate("
+            ++ String.fromInt (floor x)
+            ++ " "
+            ++ String.fromInt (floor y)
+            ++ ")"
+        )

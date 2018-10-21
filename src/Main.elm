@@ -5,6 +5,7 @@ import Browser.Events
 import Color
 import Game
 import Html exposing (Html)
+import Input
 import Svg
 import Svg.Attributes
 
@@ -14,7 +15,9 @@ import Svg.Attributes
 
 
 type alias Model =
-    { gameState : Game.Model }
+    { gameState : Game.Model
+    , input : Input.Model
+    }
 
 
 getDimensions : ( Float, Float )
@@ -24,7 +27,9 @@ getDimensions =
 
 initialModel : Model
 initialModel =
-    { gameState = Game.initialModel getDimensions }
+    { gameState = Game.initialModel getDimensions
+    , input = Input.initialModel
+    }
 
 
 
@@ -42,6 +47,7 @@ init _ =
 
 type Msg
     = GameMsg Game.Msg
+    | InputMsg Input.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
@@ -50,9 +56,16 @@ update msg model =
         GameMsg subMsg ->
             let
                 gameModel =
-                    Game.update subMsg model.gameState
+                    Game.update subMsg model.input model.gameState
             in
             ( { model | gameState = gameModel }, Cmd.none )
+
+        InputMsg subMsg ->
+            let
+                inputModel =
+                    Input.update subMsg model.input
+            in
+            ( { model | input = inputModel }, Cmd.none )
 
 
 
@@ -64,6 +77,8 @@ subscriptions model =
     Sub.batch
         [ Sub.map GameMsg <|
             Game.subscriptions model.gameState
+        , Sub.map InputMsg <|
+            Input.subscriptions
         ]
 
 

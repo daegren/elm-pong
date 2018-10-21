@@ -29,6 +29,7 @@ type Key
     | ArrowDown
     | W
     | S
+    | Space
 
 
 type Msg
@@ -61,6 +62,9 @@ handleKeyDown key model =
         S ->
             { model | paddle1 = 1 }
 
+        Space ->
+            { model | space = True }
+
 
 handleKeyUp : Key -> Model -> Model
 handleKeyUp key model =
@@ -76,6 +80,9 @@ handleKeyUp key model =
 
         S ->
             { model | paddle1 = 0 }
+
+        Space ->
+            { model | space = False }
 
 
 
@@ -99,6 +106,9 @@ keyDecoder =
 
                     "s" ->
                         Decode.succeed S
+
+                    " " ->
+                        Decode.succeed Space
 
                     _ ->
                         let

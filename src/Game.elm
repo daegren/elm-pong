@@ -25,8 +25,14 @@ player x =
     { x = x, y = 0, vx = 0, vy = 0, score = 0 }
 
 
+type State
+    = Play
+    | Pause
+
+
 type alias Model =
-    { ball : Ball
+    { state : State
+    , ball : Ball
     , player1 : Player
     , player2 : Player
     , dimensions : ( Float, Float )
@@ -35,7 +41,8 @@ type alias Model =
 
 initialModel : ( Float, Float ) -> Model
 initialModel (( width, height ) as dimensions) =
-    { ball = { x = width / 2, y = height / 2, vx = 200, vy = 200 }
+    { state = Pause
+    , ball = { x = width / 2, y = height / 2, vx = 200, vy = 200 }
     , player1 = player 20
     , player2 = player (width - 20)
     , dimensions = dimensions
@@ -58,10 +65,21 @@ update msg input model =
 
 
 stepGame : Float -> Input.Model -> Model -> Model
-stepGame delta input ({ ball, player1, player2 } as model) =
+stepGame delta input ({ state, ball, player1, player2 } as model) =
     let
+        state_ =
+            if input.space then
+                Play
+
+            else
+                state
+
         ball_ =
-            stepBall delta model ball
+            if state == Pause then
+                ball
+
+            else
+                stepBall delta model ball
 
         player1_ =
             stepPlayer delta model input.paddle1 player1
@@ -70,7 +88,8 @@ stepGame delta input ({ ball, player1, player2 } as model) =
             stepPlayer delta model input.paddle2 player2
     in
     { model
-        | ball = ball_
+        | state = state_
+        , ball = ball_
         , player1 = player1_
         , player2 = player2_
     }
@@ -134,8 +153,7 @@ within ball playerObj =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ onAnimationFrame model ]
+    onAnimationFrame model
 
 
 onAnimationFrame : Model -> Sub Msg
@@ -161,12 +179,18 @@ view ({ dimensions } as model) =
         , displayBall model.ball
         , displayPlayer model.player1
         , displayPlayer model.player2
+        , displayHelp model
         ]
 
 
 pongGreen : Color.Color
 pongGreen =
     Color.rgb255 60 100 60
+
+
+textGreen : Color.Color
+textGreen =
+    Color.rgb255 160 200 160
 
 
 backgroundView { dimensions } =
@@ -213,3 +237,26 @@ translate { x, y } =
             ++ String.fromInt (floor y)
             ++ ")"
         )
+
+
+displayHelp : Model -> Svg msg
+displayHelp model =
+    if model.state == Play then
+        rect [] []
+
+    else
+        let
+            ( width, height ) =
+                model.dimensions
+        in
+        text_
+            [ fontFamily "monospace"
+            , color <| Color.toCssString textGreen
+            , translate { x = width / 2 - 175, y = 40 }
+            ]
+            [ text helpMessage ]
+
+
+helpMessage : String
+helpMessage =
+    "SPACE to start ws and &uarr;&darr; to move"

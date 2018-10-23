@@ -6,8 +6,6 @@ import Color
 import Game
 import Html exposing (Html)
 import Input
-import Svg
-import Svg.Attributes
 
 
 
